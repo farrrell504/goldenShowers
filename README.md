@@ -2,7 +2,7 @@
 
 ## If using the dummy python scripts to simulate OSC messages
   1. Run oscHub.py first
-    1. You'll need to modify the IP address to be that of your computers
+    1.1 You'll need to modify the IP address to be that of your computers
   2. Point browser at Bela IDE
     1. Copy in the render.cpp text
     2. Change remoteIP to this same IP address
