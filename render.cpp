@@ -56,6 +56,8 @@ int localPort = 7562;
 int remotePort = 7563;
 const char* remoteIp = "192.168.1.12";
 
+int belaNumber = 1; //will be one of 17
+
 bool setup(BelaContext *context, void *userData)
 {
     oscServer.setup(localPort);
@@ -63,8 +65,9 @@ bool setup(BelaContext *context, void *userData)
     
     // the following code sends an OSC message to address /osc-setup
     // then waits 1 second for a reply on /osc-setup-reply
+    
     bool handshakeReceived = false;
-    oscClient.sendMessageNow(oscClient.newMessage.to("/osc-setup").add(4.2f).end());
+    oscClient.sendMessageNow(oscClient.newMessage.to("/osc-setup").add(belaNumber).end());
     oscServer.receiveMessageNow(1000);
     while (oscServer.messageWaiting()){
         if (oscServer.popMessage().match("/osc-setup-reply")){
