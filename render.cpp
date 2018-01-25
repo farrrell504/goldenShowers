@@ -23,10 +23,10 @@ The Bela software is distributed under the GNU Lesser General Public License
 
 #define VALVE(idx) (1<<idx)
 
-    int pin[16]{
-    	P8_07,
-    	P8_08,
-    	P8_09,
+int pin[16]{
+	P8_07,
+	P8_08,
+	P8_09,
     	P8_10,
     	P8_11,
     	P8_12,
@@ -39,7 +39,9 @@ The Bela software is distributed under the GNU Lesser General Public License
     	P8_27,
     	P8_28,
     	P8_29,
-    	P8_30};
+	P8_30};
+	
+unsigned char valveStatus = 0b0000000000000001;
 
 OSCServer oscServer;
 OSCClient oscClient;
@@ -93,7 +95,10 @@ bool setup(BelaContext *context, void *userData)
     } else {
         rt_printf("timeout!\n");
     }
-    
+    for(int k=0; k<8; k++) {
+    pinMode(context, 0, pin[k], OUTPUT);
+    }
+    rt_printf("valveStatus is %u\n",valveStatus);
 	return true;
 }
 
@@ -101,16 +106,18 @@ void render(BelaContext *context, void *userData)
 {
     // receive OSC messages, parse them, and send back an acknowledgment
     while (oscServer.messageWaiting()){
-        int count = parseMessage(oscServer.popMessage());
-        rt_printf("%i\n",count);
+        int newValveValue = parseMessage(oscServer.popMessage());
+        rt_printf("%i\n",newValveValue ); //150 is 10010110
         for(int k=0;k<8;k++){
-        	if(count&VALVE(k)){
-        		rt_printf("turn that shit on valve %d\n",k);
+        	if((newValveValue &VALVE(k)) != (valveStatus&VALVE(k))){ //want to say if != currentStatus 
+        		digitalWrite(context, context->digitalFrames, pin[k], (newValveValue &VALVE(k)));
+        		valveStatus = valveStatus^VALVE(k);
+        		rt_printf("change yo shit up valve %i, valveStatus %u\n",k,valveStatus);
         	} else {
-        		rt_printf("no one wants you on valve %i\n",k);
+        		rt_printf("you're perfect just the way you are valve %i\n",k);
         	}
         }
-        oscClient.queueMessage(oscClient.newMessage.to("/volume").add(count).end()); //lets main controller know message was correctly received
+        oscClient.queueMessage(oscClient.newMessage.to("/ack").add(newValveValue).end()); //lets main controller know message was correctly received
     }
 }
 
