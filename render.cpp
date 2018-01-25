@@ -4,19 +4,14 @@
 |  _ \|  _| | |     / _ \  
 | |_) | |___| |___ / ___ \ 
 |____/|_____|_____/_/   \_\
-
 The platform for ultra-low latency audio and sensor processing
-
 http://bela.io
-
 A project of the Augmented Instruments Laboratory within the
 Centre for Digital Music at Queen Mary University of London.
 http://www.eecs.qmul.ac.uk/~andrewm
-
 (c) 2016 Augmented Instruments Laboratory: Andrew McPherson,
   Astrid Bin, Liam Donovan, Christian Heinrichs, Robert Jack,
   Giulio Moro, Laurel Pardue, Victor Zappi. All rights reserved.
-
 The Bela software is distributed under the GNU Lesser General Public License
 (LGPL 3.0), available here: https://www.gnu.org/licenses/lgpl-3.0.txt
 */
@@ -27,6 +22,24 @@ The Bela software is distributed under the GNU Lesser General Public License
 #include <OSCClient.h>
 
 #define VALVE(idx) (1<<idx)
+
+    int pin[16]{
+    	P8_07,
+    	P8_08,
+    	P8_09,
+    	P8_10,
+    	P8_11,
+    	P8_12,
+    	P9_12,
+    	P9_14,
+    	P8_15,
+    	P8_16,
+    	P9_16,
+    	P8_18,
+    	P8_27,
+    	P8_28,
+    	P8_29,
+    	P8_30};
 
 OSCServer oscServer;
 OSCClient oscClient;
@@ -92,7 +105,7 @@ void render(BelaContext *context, void *userData)
         rt_printf("%i\n",count);
         for(int k=0;k<8;k++){
         	if(count&VALVE(k)){
-        		rt_printf("turn that shit on valve %i\n",k);
+        		rt_printf("turn that shit on valve %d\n",k);
         	} else {
         		rt_printf("no one wants you on valve %i\n",k);
         	}
@@ -109,22 +122,16 @@ void cleanup(BelaContext *context, void *userData)
 
 /**
 \example OSC/render.cpp
-
 Open Sound Control
 ------------------
-
 This example shows an implementation of OSC (Open Sound Control) which was 
 developed at UC Berkeley Center for New Music and Audio Technology (CNMAT).
-
 It is designed to be run alongside resources/osc/osc.js
-
 The OSC server port on which to receive is set in `setup()` 
 via `oscServer.setup()`. Likewise the OSC client port on which to 
 send is set in `oscClient.setup()`.
-
 In `setup()` an OSC message to address `/osc-setup`, it then waits 
 1 second for a reply on `/osc-setup-reply`.
-
 in `render()` the code receives OSC messages, parses them, and sends 
 back an acknowledgment.
 */
