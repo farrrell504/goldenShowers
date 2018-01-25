@@ -19,13 +19,17 @@ from pythonosc import osc_server
 from pythonosc import osc_message_builder
 from pythonosc import udp_client
 
-client = udp_client.UDPClient('192.168.1.18', 7562)
+hostComputerIP='192.168.1.12';
+hostComputerPort=7563;
 
-def print_volume_handler(unused_addr, args, volume):
+remoteBelatIP='192.168.1.18';
+remoteBelaPort=7562;
+
+client = udp_client.UDPClient(remoteBelatIP, remoteBelaPort)
+
+def print_ack_handler(unused_addr, args, volume):
   print("[{0}] ~ {1}".format(args[0], volume))
-  #msg = osc_message_builder.OscMessageBuilder(address = '/osc-setup-reply')
-  #msg = msg.build()
-  #client.send(msg)
+
 
 def reply_osc_startup(unused_addr, args, volume):
   print("[{0}] ~ {1}".format(args[0], volume))
@@ -41,14 +45,14 @@ def print_compute_handler(unused_addr, args, volume):
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--ip",
-      default="192.168.1.12", help="The ip to listen on")
+      default=hostComputerIP, help="The ip to listen on")
   parser.add_argument("--port",
-      type=int, default=7563, help="The port to listen on")
+      type=int, default=hostComputerPort, help="The port to listen on")
   args = parser.parse_args()
 
   dispatcher = dispatcher.Dispatcher()
   dispatcher.map("/filter", print)
-  dispatcher.map("/volume", print_volume_handler, "Volume")
+  dispatcher.map("/ack", print_ack_handler, "Acknowledgment")
   dispatcher.map("/logvolume", print_compute_handler, "Log volume", math.log)
   dispatcher.map("/osc-setup", reply_osc_startup, "Startup")
 
@@ -56,3 +60,4 @@ if __name__ == "__main__":
       (args.ip, args.port), dispatcher)
   print("Serving on {}".format(server.server_address))
   server.serve_forever()
+
