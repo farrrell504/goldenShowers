@@ -30,6 +30,8 @@ client = udp_client.UDPClient(remoteBelatIP, remoteBelaPort)
 def print_ack_handler(unused_addr, args, volume):
   print("[{0}] ~ {1}".format(args[0], volume))
 
+def print_belaNumber_handler(unused_addr, args, volume):
+  print("[{0}] ~ {1}".format(args[0], volume))
 
 def reply_osc_startup(unused_addr, args, volume):
   print("[{0}] ~ {1}".format(args[0], volume))
@@ -53,6 +55,7 @@ if __name__ == "__main__":
   dispatcher = dispatcher.Dispatcher()
   dispatcher.map("/filter", print)
   dispatcher.map("/ack", print_ack_handler, "Acknowledgment")
+  dispatcher.map("/whoiam", print_belaNumber_handler, "Bela Number")
   dispatcher.map("/logvolume", print_compute_handler, "Log volume", math.log)
   dispatcher.map("/osc-setup", reply_osc_startup, "Startup")
 
