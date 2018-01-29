@@ -27,29 +27,33 @@ int pin[16]{
 	P8_07,
 	P8_08,
 	P8_09,
-    	P8_10,
-    	P8_11,
-    	P8_12,
-    	P9_12,
-    	P9_14,
-    	P8_15,
-    	P8_16,
-    	P9_16,
-    	P8_18,
-    	P8_27,
-    	P8_28,
-    	P8_29,
+    P8_10,
+    P8_11,
+    P8_12,
+    P9_12,
+    P9_14,
+    P8_15,
+    P8_16,
+    P9_16,
+    P8_18,
+    P8_27,
+    P8_28,
+    P8_29,
 	P8_30};
 	
-unsigned char valveStatus = 0b0000000000000001;
+unsigned char valveStatus = 0b0000000000000001; 
+//holds status for the 16 valves. 
+//1 is on. 0 is off.
 
 OSCServer oscServer;
 OSCClient oscClient;
 
-// this example is designed to be run alongside resources/osc/osc.js
+int localPort = 7562;
+int hostComputerPort = 7563;
+const char* hostComputerIp = "192.168.1.12";
 
-// parse messages received by OSC Server
-// msg is Message class of oscpkt: http://gruntthepeon.free.fr/oscpkt/
+int belaNumber = 1; //will be one of 17
+
 int parseMessage(oscpkt::Message msg){
     
     rt_printf("received message to: %s\n", msg.addressPattern().c_str());
@@ -59,6 +63,10 @@ int parseMessage(oscpkt::Message msg){
     if (msg.match("/osc-test").popStr(s)){
        intArg=std::stoi( s );
        rt_printf("maybe %i\n",intArg);
+    } else if (msg.match("/whoisthis").popStr(s)){
+    	intArg=131071;
+    	//could use s as the sender ID? not sure if useful
+    	rt_printf("whoisthis received",intArg);
     }
     else{
     	intArg = 1;
@@ -67,11 +75,7 @@ int parseMessage(oscpkt::Message msg){
     return intArg;
 }
 
-int localPort = 7562;
-int hostComputerPort = 7563;
-const char* hostComputerIp = "192.168.1.12";
 
-int belaNumber = 1; //will be one of 17
 
 bool setup(BelaContext *context, void *userData)
 {
@@ -95,10 +99,11 @@ bool setup(BelaContext *context, void *userData)
     } else {
         rt_printf("timeout!\n");
     }
+    
     for(int k=0; k<8; k++) {
     pinMode(context, 0, pin[k], OUTPUT);
     }
-    rt_printf("valveStatus is %u\n",valveStatus);
+    
 	return true;
 }
 
@@ -107,17 +112,21 @@ void render(BelaContext *context, void *userData)
     // receive OSC messages, parse them, and send back an acknowledgment
     while (oscServer.messageWaiting()){
         int newValveValue = parseMessage(oscServer.popMessage());
-        rt_printf("%i\n",newValveValue ); //150 is 10010110
-        for(int k=0;k<8;k++){
-        	if((newValveValue &VALVE(k)) != (valveStatus&VALVE(k))){ //want to say if != currentStatus 
-        		digitalWrite(context, context->digitalFrames, pin[k], (newValveValue &VALVE(k)));
-        		valveStatus = valveStatus^VALVE(k);
-        		rt_printf("change yo shit up valve %i, valveStatus %u\n",k,valveStatus);
-        	} else {
-        		rt_printf("you're perfect just the way you are valve %i\n",k);
-        	}
+        if (newValveValue==131071){
+        	oscClient.queueMessage(oscClient.newMessage.to("/whoiam").add(belaNumber).end());
+        }	else{
+	        rt_printf("%i\n",newValveValue ); //150 is 10010110
+	        for(int k=0;k<8;k++){
+	        	if((newValveValue &VALVE(k)) != (valveStatus&VALVE(k))){ //want to say if != currentStatus 
+	        		digitalWrite(context, context->digitalFrames, pin[k], (newValveValue &VALVE(k)));
+	        		valveStatus = valveStatus^VALVE(k);
+	        		rt_printf("change yo shit up valve %i, valveStatus %u\n",k,valveStatus);
+	        	} else {
+	        		rt_printf("you're perfect just the way you are valve %i\n",k);
+	        	}
+	        }
+	        oscClient.queueMessage(oscClient.newMessage.to("/ack").add(newValveValue).end()); //lets main controller know message was correctly received
         }
-        oscClient.queueMessage(oscClient.newMessage.to("/ack").add(newValveValue).end()); //lets main controller know message was correctly received
     }
 }
 
@@ -128,17 +137,5 @@ void cleanup(BelaContext *context, void *userData)
 
 
 /**
-\example OSC/render.cpp
-Open Sound Control
-------------------
-This example shows an implementation of OSC (Open Sound Control) which was 
-developed at UC Berkeley Center for New Music and Audio Technology (CNMAT).
-It is designed to be run alongside resources/osc/osc.js
-The OSC server port on which to receive is set in `setup()` 
-via `oscServer.setup()`. Likewise the OSC client port on which to 
-send is set in `oscClient.setup()`.
-In `setup()` an OSC message to address `/osc-setup`, it then waits 
-1 second for a reply on `/osc-setup-reply`.
-in `render()` the code receives OSC messages, parses them, and sends 
-back an acknowledgment.
+\
 */
