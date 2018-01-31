@@ -41,7 +41,7 @@ int pin[16]{
     P8_29,
 	P8_30};
 	
-unsigned char valveStatus = 0b0000000000000001; 
+unsigned char valveStatus = 0b0000000000000000; 
 //holds status for the 16 valves. 
 //1 is on. 0 is off.
 
@@ -100,9 +100,12 @@ bool setup(BelaContext *context, void *userData)
         rt_printf("timeout!\n");
     }
     
-    for(int k=0; k<8; k++) {
+    for(int k=0; k<16; k++) {
     pinMode(context, 0, pin[k], OUTPUT);
+    digitalWrite(context, 0, pin[k], 0);
     }
+    
+    
     
 	return true;
 }
@@ -116,13 +119,16 @@ void render(BelaContext *context, void *userData)
         	oscClient.queueMessage(oscClient.newMessage.to("/whoiam").add(belaNumber).end());
         }	else{
 	        rt_printf("%i\n",newValveValue ); //150 is 10010110
-	        for(int k=0;k<8;k++){
+	        for(int k=0;k<16;k++){
 	        	if((newValveValue &VALVE(k)) != (valveStatus&VALVE(k))){ //want to say if != currentStatus 
-	        		digitalWrite(context, context->digitalFrames, pin[k], (newValveValue &VALVE(k)));
-	        		valveStatus = valveStatus^VALVE(k);
-	        		rt_printf("change yo shit up valve %i, valveStatus %u\n",k,valveStatus);
+	        		digitalWrite(context, 0, pin[k], (newValveValue &VALVE(k)));
+	        		
+	        		rt_printf("change yo shit up valve %i, valve(k) %i, valveStatus %u, value told %i, compared against%i\n",k,VALVE(k),valveStatus,(newValveValue &VALVE(k)),(valveStatus&VALVE(k)));
+	        		rt_printf("xor of %i to %i\n",VALVE(k),valveStatus);
+	        		valveStatus = VALVE(k)^valveStatus;
+	        		rt_printf("valve status is now %i\n",valveStatus);
 	        	} else {
-	        		rt_printf("you're perfect just the way you are valve %i\n",k);
+	        		//rt_printf("you're perfect just the way you are valve %i\n",k);
 	        	}
 	        }
 	        oscClient.queueMessage(oscClient.newMessage.to("/ack").add(newValveValue).end()); //lets main controller know message was correctly received
@@ -134,8 +140,4 @@ void cleanup(BelaContext *context, void *userData)
 {
 
 }
-
-
-/**
-\
 */
