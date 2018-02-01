@@ -24,24 +24,24 @@ The Bela software is distributed under the GNU Lesser General Public License
 #define VALVE(idx) (1<<idx)
 
 int pin[16]{
-	P8_07,
-	P8_08,
-	P8_09,
-    P8_10,
-    P8_11,
-    P8_12,
-    P9_12,
-    P9_14,
-    P8_15,
-    P8_16,
-    P9_16,
-    P8_18,
-    P8_27,
-    P8_28,
-    P8_29,
-	P8_30};
+	P8_07, //pin1
+	P8_08, //1
+	P8_09, //2
+    P8_10, //3
+    P8_11, //4
+    P8_12, //5
+    P9_12, //6
+    P9_14, //7
+    P8_15, //8
+    P8_16, //9
+    P9_16, //10
+    P8_18, //11
+    P8_27, //12
+    P8_28, //13
+    P8_29, //14
+	P8_30}; //15
 	
-unsigned char valveStatus = 0b0000000000000000; 
+unsigned int valveStatus = 0b0000000000000000; 
 //holds status for the 16 valves. 
 //1 is on. 0 is off.
 
@@ -56,13 +56,13 @@ int belaNumber = 1; //will be one of 17
 
 int parseMessage(oscpkt::Message msg){
     
-    rt_printf("received message to: %s\n", msg.addressPattern().c_str());
+    //rt_printf("received message to: %s\n", msg.addressPattern().c_str());
    
     int intArg=2;
 	std::string s;
     if (msg.match("/osc-test").popStr(s)){
        intArg=std::stoi( s );
-       rt_printf("maybe %i\n",intArg);
+       //rt_printf("maybe %i\n",intArg);
     } else if (msg.match("/whoisthis").popStr(s)){
     	intArg=131071;
     	//could use s as the sender ID? not sure if useful
@@ -118,15 +118,15 @@ void render(BelaContext *context, void *userData)
         if (newValveValue==131071){
         	oscClient.queueMessage(oscClient.newMessage.to("/whoiam").add(belaNumber).end());
         }	else{
-	        rt_printf("%i\n",newValveValue ); //150 is 10010110
+	        //rt_printf("%i\n",newValveValue ); //150 is 10010110
 	        for(int k=0;k<16;k++){
 	        	if((newValveValue &VALVE(k)) != (valveStatus&VALVE(k))){ //want to say if != currentStatus 
 	        		digitalWrite(context, 0, pin[k], (newValveValue &VALVE(k)));
 	        		
-	        		rt_printf("change yo shit up valve %i, valve(k) %i, valveStatus %u, value told %i, compared against%i\n",k,VALVE(k),valveStatus,(newValveValue &VALVE(k)),(valveStatus&VALVE(k)));
-	        		rt_printf("xor of %i to %i\n",VALVE(k),valveStatus);
+	        		//rt_printf("change yo shit up valve %i, valve(k) %i, valveStatus %u, value told %i, compared against%i\n",k,VALVE(k),valveStatus,(newValveValue &VALVE(k)),(valveStatus&VALVE(k)));
+	        		//rt_printf("xor of %i to %i\n",VALVE(k),valveStatus);
 	        		valveStatus = VALVE(k)^valveStatus;
-	        		rt_printf("valve status is now %i\n",valveStatus);
+	        		//rt_printf("valve status is now %i\n",valveStatus);
 	        	} else {
 	        		//rt_printf("you're perfect just the way you are valve %i\n",k);
 	        	}
@@ -140,4 +140,7 @@ void cleanup(BelaContext *context, void *userData)
 {
 
 }
-*/
+
+
+/**
+\
