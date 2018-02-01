@@ -41,7 +41,7 @@ while x<16:
     #client.send(msg)
     time.sleep(2)
     msg = osc_message_builder.OscMessageBuilder(address = '/osc-test')
-    msg.add_arg(str(pow(2,x))
+    msg.add_arg(str(pow(2,x)))
     msg = msg.build()
     client.send(msg)
     x = x + 1
